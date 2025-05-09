@@ -1,12 +1,48 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
-	"github.com/lorraynefirme/api-golang/src/configuration/rest_err"
+	"github.com/lorraynefirme/api-golang/src/configuration/logger"
+	"github.com/lorraynefirme/api-golang/src/configuration/validation"
+	"github.com/lorraynefirme/api-golang/src/controller/model/request"
+	"github.com/lorraynefirme/api-golang/src/model"
+	"go.uber.org/zap"
 )
 
 func CreateUser(c *gin.Context){
-	err := rest_err.NewBadRequestError("error creating user")
-	c.JSON(err.Code, err)
+	logger.Info("Init CreateUser controller",
+		zap.String("journey", "createUser"),
+	)
+
+	var userRequest request.UserRequest
+
+	if err := c.ShouldBindJSON(&userRequest); err != nil {
+		logger.Error("Error trying to validate user information", err,
+		zap.String("journey", "createUser"),
+	)
+		errRest := validation.ValidateUserError(err)
+
+		c.JSON(errRest.Code, errRest)
+		return
+	}
+
+	domain := model.NewUserDomain(
+		userRequest.Email, 
+		userRequest.Password, 
+		userRequest.Name, 
+		userRequest.Age)
+
+	if err := domain.CreateUser(); err != nil { 
+		c.JSON(err.Code, err)
+		return
+	}
+
+
+	logger.Info("User created successfully",
+		zap.String("journey", "createUser"))
+	
+	c.String(http.StatusOK, "")
 }
 
