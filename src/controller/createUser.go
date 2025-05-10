@@ -8,11 +8,11 @@ import (
 	"github.com/lorraynefirme/api-golang/src/configuration/validation"
 	"github.com/lorraynefirme/api-golang/src/controller/model/request"
 	"github.com/lorraynefirme/api-golang/src/model"
-	"github.com/lorraynefirme/api-golang/src/model/service"
+	"github.com/lorraynefirme/api-golang/src/view"
 	"go.uber.org/zap"
 )
 
-func CreateUser(c *gin.Context){
+func (uc *userControllerInterface) CreateUser(c *gin.Context){
 	logger.Info("Init CreateUser controller",
 		zap.String("journey", "createUser"),
 	)
@@ -35,17 +35,15 @@ func CreateUser(c *gin.Context){
 		userRequest.Name, 
 		userRequest.Age)
 
-	service := service.NewUserDomainService()
-
-	if err := service.CreateUser(domain); err != nil { 
+	if err := uc.service.CreateUser(domain); err != nil { 
 		c.JSON(err.Code, err)
 		return
-	}
+	} 
 
 
 	logger.Info("User created successfully",
 		zap.String("journey", "createUser"))
 	
-	c.String(http.StatusOK, "")
+	c.JSON(http.StatusOK, view.ConvertDomainToResponse(domain))
 }
 

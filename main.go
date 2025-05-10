@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/lorraynefirme/api-golang/src/configuration/logger"
+	"github.com/lorraynefirme/api-golang/src/controller"
 	"github.com/lorraynefirme/api-golang/src/controller/routes"
+	"github.com/lorraynefirme/api-golang/src/model/service"
 )
 func main() {
 	logger.Info("About to start user aplication")
@@ -15,8 +17,11 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 	//fmt.Println(os.Getenv("TEST"))
+	//init dependencies
+	userService := service.NewUserDomainService()
+	userController := controller.NewUserControllerInterface(userService)
 	router := gin.Default()
-	routes.InitRoutes(&router.RouterGroup)
+	routes.InitRoutes(&router.RouterGroup, userController)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
